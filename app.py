@@ -93,10 +93,7 @@ def bat_info(batsman):
         )).transpose())
 
     st.subheader('Dismissal Types')
-    b = bmdf[bmdf['player_dismissed'] == batsman]['dismissal_kind'].value_counts()
-    fig , ax =plt.subplots()
-    ax.bar(b.index,b.values)
-    st.pyplot(fig)    
+    st.dataframe(pd.DataFrame(bmdf[bmdf['player_dismissed'] == batsman]['dismissal_kind'].value_counts()))
 
 
 ### BATSMAN VS A SINGLE TEAM STATS ###
@@ -153,10 +150,8 @@ def bat_vs_team_info(batsman,team):
             )).transpose())
 
         st.subheader('Dismissal Types')
-        b = bmdf[bmdf['player_dismissed'] == batsman]['dismissal_kind'].value_counts()
-        fig , ax =plt.subplots()
-        ax.bar(b.index,b.values)
-        st.pyplot(fig)  
+        st.dataframe(pd.DataFrame(bmdf[bmdf['player_dismissed'] == batsman]['dismissal_kind'].value_counts()))
+         
     
 ### Team Stats
 def team_info(team):
