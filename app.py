@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
-import matplotlib.pyplot as plt
 
 deliveries_df = pd.read_csv('deliveries.csv')
 matches_df = pd.read_csv('matches.csv')
