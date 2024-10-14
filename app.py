@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
+import pickle
 
 deliveries_df = pd.read_csv('deliveries.csv')
 matches_df = pd.read_csv('matches.csv')
@@ -50,6 +51,25 @@ mdf.loc[mdf['season'] == '2020/21' , 'season'] = '2020'
 
 first_season = int(mdf['season'].min())
 latest_season = int(mdf['season'].max())
+
+# Changed Venue names where one stadium was addressed with different names
+mdf['venue'].replace(['Arun Jaitley Stadium','Feroz Shah Kotla'],'Arun Jaitley Stadium, Delhi',inplace=True)
+mdf['venue'].replace(['Wankhede Stadium'],'Wankhede Stadium, Mumbai',inplace=True)
+mdf['venue'].replace(['Eden Gardens'],'Eden Gardens, Kolkata',inplace=True)
+mdf['venue'].replace(['M Chinnaswamy Stadium','M.Chinnaswamy Stadium'],'M Chinnaswamy Stadium, Bengaluru',inplace=True)
+mdf['venue'].replace(['MA Chidambaram Stadium','MA Chidambaram Stadium, Chepauk'],'MA Chidambaram Stadium, Chepauk, Chennai',inplace=True)
+mdf['venue'].replace(['Rajiv Gandhi International Stadium','Rajiv Gandhi International Stadium, Uppal'],'Rajiv Gandhi International Stadium, Uppal, Hyderabad',inplace=True)
+mdf['venue'].replace(['Sardar Patel Stadium, Motera'],'Narendra Modi Stadium, Ahmedabad',inplace=True)
+mdf['venue'].replace(['Punjab Cricket Association Stadium, Mohali','Punjab Cricket Association IS Bindra Stadium, Mohali','Punjab Cricket Association IS Bindra Stadium'],'Punjab Cricket Association IS Bindra Stadium, Mohali, Chandigarh',inplace=True)
+mdf['venue'].replace(['Sawai Mansingh Stadium'],'Sawai Mansingh Stadium, Jaipur',inplace=True)
+mdf['venue'].replace(['Sheikh Zayed Stadium'],'Zayed Cricket Stadium, Abu Dhabi',inplace=True)
+mdf['venue'].replace(['Dr DY Patil Sports Academy'],'Dr DY Patil Sports Academy, Mumbai',inplace=True)
+mdf['venue'].replace(['Brabourne Stadium'],'Brabourne Stadium, Mumbai',inplace=True)
+mdf['venue'].replace(['Maharashtra Cricket Association Stadium'],'Maharashtra Cricket Association Stadium, Pune',inplace=True)
+mdf['venue'].replace(['Himachal Pradesh Cricket Association Stadium'],'Himachal Pradesh Cricket Association Stadium, Dharamsala',inplace=True)
+mdf['venue'].replace(['Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium'],'Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium, Visakhapatnam',inplace=True)
+
+venue_list = list(mdf['venue'].unique())
 
 ### BATSMAN CAREER DETAILS ###
 def bat_info(batsman):
@@ -470,51 +490,115 @@ def team_vs_team_info(team1,team2):
 
 #### Page Configuration
 st.set_page_config(page_title="IPL Analysis", page_icon="🏏",layout="wide")
-st.sidebar.title('IPL Statistics')
+st.sidebar.title('IPL Insights & Predictions')
+
 
 #### Above functions are used here
-option = st.sidebar.selectbox('Select type of statistics',['Player Stats','Player vs Team Stats','Team stats','Team vs Team Stats'])
-if option == 'Player Stats':
-    st.title('Player stats')
-    selected_player = st.sidebar.selectbox('Select player',players_list)
-    selected_Option = st.sidebar.selectbox('Select Type of Stats',['Batting Stats','Bowling Stats','Both'])
-    btn1= st.sidebar.button('Fetch Results')   
-    if btn1:
-        if selected_Option == 'Batting Stats':
-            bat_info(selected_player)
-        elif selected_Option == 'Bowling Stats':
-            ball_info(selected_player)
+option = st.sidebar.selectbox('Main menu',['IPL Statistics','IPL winning Prediction'])
+if option == 'IPL Statistics':
+    option1 = st.sidebar.selectbox('Select type of statistics',['Player Stats','Player vs Team Stats','Team stats','Team vs Team Stats','Win Predictor'])
+    if option1 == 'Player Stats':
+        st.title('Player stats')
+        selected_player = st.sidebar.selectbox('Select player',players_list)
+        selected_Option = st.sidebar.selectbox('Select Type of Stats',['Batting Stats','Bowling Stats','Both'])
+        btn1= st.sidebar.button('Fetch Results')   
+        if btn1:
+            if selected_Option == 'Batting Stats':
+                bat_info(selected_player)
+            elif selected_Option == 'Bowling Stats':
+                ball_info(selected_player)
+            else:
+                bat_info(selected_player)
+                ball_info(selected_player)
+
+    elif option1 == 'Player vs Team Stats':
+        st.title('Player vs Team Stats')
+        selected_player = st.sidebar.selectbox('Select Player',players_list)
+        selected_team = st.sidebar.selectbox('Select Team',team_list)
+        selected_Option = st.sidebar.selectbox('Select Type of Stats',['Batting Stats','Bowling Stats','Both'])
+        btn2 = st.sidebar.button('Fetch Results')
+        if btn2:
+            if selected_Option == 'Batting Stats':
+                bat_vs_team_info(selected_player,selected_team)
+            elif selected_Option == 'Bowling Stats':
+                ball_vs_team_info(selected_player,selected_team)
+            else:
+                bat_vs_team_info(selected_player,selected_team)
+                ball_vs_team_info(selected_player,selected_team)
+
+    elif option1 == 'Team stats':
+        st.title('Team stats')
+        selected_team = st.sidebar.selectbox('Select Team',team_list)
+        btn3 = st.sidebar.button('Fetch Results')
+        if btn3:
+            team_info(selected_team)        
+        
+
+    elif option1 == 'Team vs Team Stats':
+        st.title('Team vs Team Stats')
+        selected_team1 = st.sidebar.selectbox('Select Team1',team_list)
+        selected_team2 = st.sidebar.selectbox('Select Team2',team_list)
+        btn4 = st.sidebar.button('Fetch Results')
+        if btn4:
+            team_vs_team_info(selected_team1,selected_team2)
+elif option == 'IPL winning Prediction':
+    st.title('IPL Winning Prediction')
+    pipe = pickle.load(open('pipe.pkl','rb'))
+    col1, col2 = st.columns(2)
+    with col1:
+        batting_team = st.selectbox('Select batting team',sorted(team_list))
+    with col2:
+        bowling_team = st.selectbox('Select bowling team',sorted(team_list))
+    venue = st.selectbox('Select venue',sorted(venue_list))
+    target_runs = st.number_input('Target',max_value = 1200, min_value = 1)
+    col3,col4,col5 = st.columns(3)
+    with col3:
+        Score = st.number_input('Score',max_value = 1200, min_value =0)
+    with col4:
+        Overs = st.number_input('Overs Completed',max_value = 20, min_value = 1)
+    with col5:
+        wickets_lost = st.number_input('Wickets Lost', max_value = 10, min_value = 0)
+    if st.button('Predict Percentages'):
+        if batting_team == bowling_team:
+            st.write("You have selected same teams")
+        elif (Overs == 0):
+            st.write("Check the inputs")
+        elif (wickets_lost == 10) | (Overs == 20):
+            if (target_runs > Score):
+                st.write(bowling_team," Won the match")
+            elif(target_runs < Score):
+                st.write(batting_team," Won the match")
+            else:
+                st.write("Its a tie")
         else:
-            bat_info(selected_player)
-            ball_info(selected_player)
-
-elif option == 'Player vs Team Stats':
-    st.title('Player vs Team Stats')
-    selected_player = st.sidebar.selectbox('Select Player',players_list)
-    selected_team = st.sidebar.selectbox('Select Team',team_list)
-    selected_Option = st.sidebar.selectbox('Select Type of Stats',['Batting Stats','Bowling Stats','Both'])
-    btn2 = st.sidebar.button('Fetch Results')
-    if btn2:
-        if selected_Option == 'Batting Stats':
-            bat_vs_team_info(selected_player,selected_team)
-        elif selected_Option == 'Bowling Stats':
-            ball_vs_team_info(selected_player,selected_team)
-        else:
-            bat_vs_team_info(selected_player,selected_team)
-            ball_vs_team_info(selected_player,selected_team)
-
-elif option == 'Team stats':
-    st.title('Team stats')
-    selected_team = st.sidebar.selectbox('Select Team',team_list)
-    btn3 = st.sidebar.button('Fetch Results')
-    if btn3:
-        team_info(selected_team)        
-    
-
-elif option == 'Team vs Team Stats':
-    st.title('Team vs Team Stats')
-    selected_team1 = st.sidebar.selectbox('Select Team1',team_list)
-    selected_team2 = st.sidebar.selectbox('Select Team2',team_list)
-    btn4 = st.sidebar.button('Fetch Results')
-    if btn4:
-        team_vs_team_info(selected_team1,selected_team2)
+            runs_left = target_runs - Score
+            balls_left = 120 - (Overs*6)
+            wickets_left = 10 - wickets_lost
+            current_run_rate = Score/Overs
+            required_run_rate = (runs_left*6)/balls_left 
+            input_df = pd.DataFrame({
+                    'batting_team':[batting_team],'bowling_team':[bowling_team],'venue':[venue],'runs_left':[runs_left],
+                    'balls_left':[balls_left],'wickets_left':[wickets_left],'target_runs':[target_runs],'current_run_rate':[current_run_rate],
+                    'required_run_rate':[required_run_rate]
+            })
+            result = pipe.predict_proba(input_df)
+            loss_percentage = round(result[0][0],2)*100
+            win_percentage = round(result[0][1],2)*100
+            if win_percentage >=90:
+                st.write("Given the current conditions,",batting_team," has an impressive ",win_percentage,"%","chance of winning the game")
+                st.write("and as less as ",loss_percentage,"%","chance of loosing the game.")
+            elif (win_percentage >= 70) & (win_percentage <= 89) :
+                st.write(batting_team,"is in a strong position with a solid ",win_percentage,"%"," chance of taking the win! The game is theirs to lose!")
+                st.write("Though there's still a ",loss_percentage,"%","chance of defeat.")
+            elif (win_percentage >= 50) & (win_percentage <= 69):
+                st.write("It's a close match, but",batting_team,"holds a promising ",win_percentage,"%","chance of securing the win")
+                st.write("and",loss_percentage,"%"," risk of losing. It's still anyone's game!")
+            elif (win_percentage >=30) & (win_percentage <= 49):
+                st.write(batting_team," is up against the odds with a",win_percentage,"%"," chance of winning")
+                st.write("and a ",loss_percentage,"%", "chance of losing, but a comeback is still possible if they push hard!")
+            elif (win_percentage >=10) & (win_percentage <= 29):
+                st.write(batting_team," is in a challenging position with just a ",win_percentage,"%"," chance of victory") 
+                st.write("and a",loss_percentage,"%"," chance of defeat. It’s a long shot, but we have seen players pull off a miracle!")
+            else:
+                st.write(batting_team," has a only",win_percentage,"%"," chance of winning the game")
+                st.write("and as high as ",loss_percentage,"%"," chance of loosing the game")
