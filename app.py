@@ -3,6 +3,8 @@ import numpy as np
 import streamlit as st
 import pickle
 
+
+
 deliveries_df = pd.read_csv('deliveries.csv')
 matches_df = pd.read_csv('matches.csv')
 
@@ -492,6 +494,32 @@ def team_vs_team_info(team1,team2):
 st.set_page_config(page_title="IPL Analysis", page_icon="🏏",layout="wide")
 st.sidebar.title('IPL Insights & Predictions')
 
+import base64
+
+# Function to load and encode the local image
+def load_image(image_file):
+    with open(image_file, "rb") as image:
+        return base64.b64encode(image.read()).decode()
+
+# Load the local image
+background_image = load_image("background.jpg")  # Replace with your actual image file name
+
+# Inject CSS for the background image
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background: url(data:image/jpeg;base64,{background_image});
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        height: 100vh;  
+        color: red;    
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 #### Above functions are used here
 option = st.sidebar.selectbox('Main menu',['IPL Statistics','IPL winning Prediction'])
