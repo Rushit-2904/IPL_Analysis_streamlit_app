@@ -514,7 +514,7 @@ st.markdown(
         background-position: center;
         background-repeat: no-repeat;
         height: 100vh;  
-        color: red;    
+        color: white;    
     }}
     </style>
     """,
