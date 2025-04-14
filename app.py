@@ -501,10 +501,10 @@ def load_image(image_file):
     with open(image_file, "rb") as image:
         return base64.b64encode(image.read()).decode()
 
-# Load the local image
-background_image = load_image("background.jpg")  # Replace with your actual image file name
+# Loading the local image
+background_image = load_image("background.jpg") 
 
-# Inject CSS for the background image
+# Injecting CSS for the background image
 st.markdown(
     f"""
     <style>
